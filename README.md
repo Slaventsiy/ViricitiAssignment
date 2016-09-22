@@ -1,0 +1,1 @@
+Start consul agent beforehand with `consul agent -dev`
