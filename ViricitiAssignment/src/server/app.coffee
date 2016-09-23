@@ -21,7 +21,7 @@ io        = socketio.listen server
 # collection of client sockets
 sockets = []
 
-persons = new net.Socket({objectMode: true});
+persons = new net.Socket();
 
 check = (obj) ->
 	return obj.age < 35 && obj.age > 25
