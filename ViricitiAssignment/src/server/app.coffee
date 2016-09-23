@@ -21,7 +21,10 @@ io        = socketio.listen server
 # collection of client sockets
 sockets = []
 
-persons = new net.Socket();
+persons = new net.Socket({objectMode: true});
+
+check = (obj) ->
+	return obj.age < 35 && obj.age > 25
 
 connectToServer = (address = 'localhost', port = '8500') ->
 	fetch "http://#{address}:#{port}/v1/catalog/service/persons"
@@ -31,6 +34,8 @@ connectToServer = (address = 'localhost', port = '8500') ->
 		console.log 'Got service: ', service[0].ServiceAddress, service[0].ServicePort
 		persons.connect service[0].ServicePort, service[0].ServiceAddress, () ->
 			log.info 'Connected'
+#			We pass a check for the server to perform on the data before emitting it
+			persons.write JSON.stringify([['obj'], 'return obj.age < 35 && obj.age > 25'])
 
 connectToServer()
 

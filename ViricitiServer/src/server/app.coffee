@@ -3,14 +3,23 @@ Generator       = require './lib/Generator'
 consul          = (require 'consul')()
 
 sockets = []
+#check = Function()
 
 server = net.createServer (socket) ->
   sockets.push socket
   console.log 'Client connected'
+  if sockets.length == 1
+    persons.start()
 
   socket.on 'close', () ->
     sockets.splice sockets.indexOf(socket), 1
+    if sockets.length == 0
+      persons.stop()
     console.log 'Client disconnected'
+
+  socket.on 'data', (data) ->
+    parsedData = JSON.parse(data)
+    socket.check = Function(parsedData[0], parsedData[1])
 
   .on 'error', (error) ->
     console.log 'Server error: ' + error
@@ -21,9 +30,11 @@ persons = new Generator [ "first", "last", "gender", "birthday", "age", "ssn"]
 # distribute data over the websockets
 persons.on "data", (data) ->
   data.timestamp = Date.now()
-  socket.write JSON.stringify(data) for socket in sockets
-
-persons.start()
+  for socket in sockets
+    do (socket) ->
+      if socket.check && !socket.check(data)
+        return
+      socket.write JSON.stringify(data)
 
 server.listen(1338, 'localhost')
 
